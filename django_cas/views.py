@@ -137,8 +137,6 @@ def logout(request, next_page=None):
     from django.contrib.auth import logout
     if request.user.is_authenticated():
         logout(request)
-    else:
-        return HttpResponseRedirect(next_page)
     if not next_page:
         next_page = _redirect_url(request)
     if settings.CAS_LOGOUT_COMPLETELY:
