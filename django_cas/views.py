@@ -135,7 +135,10 @@ def logout(request, next_page=None):
     """Redirects to CAS logout page"""
 
     from django.contrib.auth import logout
-    logout(request)
+    if request.user.is_authenticated():
+        logout(request)
+    else:
+        return HttpResponseRedirect(next_page)
     if not next_page:
         next_page = _redirect_url(request)
     if settings.CAS_LOGOUT_COMPLETELY:
