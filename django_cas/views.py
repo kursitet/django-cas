@@ -2,12 +2,13 @@
 from datetime import datetime
 from urllib import urlencode
 from urlparse import urljoin
+from xml.dom import minidom
 
 from django.http import get_host, HttpResponseRedirect, HttpResponseForbidden, HttpResponse
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django_cas.models import PgtIOU
+from django_cas.models import PgtIOU, SessionServiceTicket
 
 __all__ = ['login', 'logout']
 
@@ -70,9 +71,27 @@ def _logout_url(request, next_page=None):
 
 def login(request, next_page=None, required=False):
     """Forwards to CAS login URL or verifies CAS ticket"""
-
+    
     if not next_page:
         next_page = _redirect_url(request)
+        
+    # Mihara: The XML packet django-mama-cas currently sends does not appear to get
+    # parsed correctly into a QueryDict, and I'm not sure if this is django-mama-cas-specific,
+    # a problem with a django version, or a problem with the whole approach...
+    # but parsing the request body as straight XML /should/ work with everything, right?
+    
+    if settings.CAS_SINGLE_SIGN_OUT and request.POST and 'samlp:LogoutRequest' in request.body:
+        session = _get_session(request.body)
+        if session:
+            from django.contrib import auth
+            request.session = session
+            request.user = auth.get_user(request)
+            # logger.debug("Got single sign out callback from CAS for user %s session %s", request.user, request.session.session_key)
+            auth.logout(request)
+            return HttpResponse('<html><body><h1>Single Sign Out - Ok</h1></body></html>')
+        else:
+            return HttpResponse('<html><body><h1>Session not found</h1></body></html>')
+        
     if request.user.is_authenticated():
         message = "You are logged in as %s." % request.user.username
         messages.success(request, message)
@@ -97,6 +116,20 @@ def login(request, next_page=None, required=False):
     else:
         return HttpResponseRedirect(_login_url(service, ticket))
 
+def _get_session(logout_response):
+    """ Recovers the session mapped with the CAS service ticket
+        received in the SAML CAS response at CAS logout.
+    """
+    try:
+        response = minidom.parseString(logout_response)
+        ticket = response.getElementsByTagName('samlp:SessionIndex')[0].firstChild.nodeValue
+        sst = SessionServiceTicket.objects.get(pk=ticket)
+        return sst.get_session()
+    except SessionServiceTicket.DoesNotExist:
+        return None
+    except Exception as e:
+        # logger.error("Unable to parse logout response from server: %s", e)
+        return None
 
 def logout(request, next_page=None):
     """Redirects to CAS logout page"""

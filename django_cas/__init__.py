@@ -14,6 +14,7 @@ _DEFAULTS = {
     'CAS_PROXY_CALLBACK': None,
     'CAS_SERVER_URL': None,
     'CAS_VERSION': '2',
+    'CAS_SINGLE_SIGN_OUT': True,
 }
 
 CAS_URI = 'http://www.yale.edu/tp/cas'
