@@ -43,6 +43,7 @@ Optional settings include:
 * CAS_VERSION: The CAS protocol version to use. '1' and '2' are supported, with '2' being the default.
 * CAS_PROXY_CALLBACK: The URL given to the CAS server in order to initialize a proxy ticket. The ticket granting ticket will be sent to this URL. The url must be registered in urls.py and handled by django_cas.views.proxy_callback, e.g: ``(r'^accounts/login/casProxyCallback$', 'django_cas.views.proxy_callback')``
 * CAS_USER_DETAILS_RESOLVER: template method for populating the user object.
+* CAS_SINGLE_SIGN_OUT: True by default, this flag enables CAS single sign out protocol, permitting the CAS server to log users out from CAS services when they log out of the CAS server itself. Be aware that you must exempt the actual login url from CSRF protection for this to work.
 
 Make sure your project knows how to log users in and out by adding these to your URL mappings:
 
