@@ -42,7 +42,7 @@ def map_service_ticket(sender, **kwargs):
     ticket = request.GET.get('ticket', '')
     if ticket:
         session_key = request.session.session_key
-        SessionServiceTicket.objects.create(service_ticket=ticket,
+        SessionServiceTicket.objects.get_or_create(service_ticket=ticket,
                                             session_key=session_key)
 
 @receiver(user_logged_out)
