@@ -17,6 +17,9 @@ class CASMiddleware(object):
 
     def process_request(self, request):
         """Logs in the user if a ticket is append as parameter"""
+        
+        if request.user is not None and request.user.is_authenticated():
+            return
 
         ticket = request.REQUEST.get('ticket')
 
