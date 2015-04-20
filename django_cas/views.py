@@ -1,6 +1,5 @@
 """CAS login/logout replacement views"""
 from datetime import datetime
-from urllib import urlencode
 from urlparse import urljoin
 from xml.dom import minidom
 
@@ -8,6 +7,7 @@ from django.http import get_host, HttpResponseRedirect, HttpResponseForbidden, H
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.utils.http import urlencode
 from django_cas.models import PgtIOU, SessionServiceTicket
 
 __all__ = ['login', 'logout']
