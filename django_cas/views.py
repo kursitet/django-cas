@@ -1,4 +1,7 @@
 """CAS login/logout replacement views"""
+
+import logging
+
 from datetime import datetime
 from urlparse import urljoin
 from xml.dom import minidom
@@ -11,6 +14,8 @@ from django.utils.http import urlencode
 from django_cas.models import PgtIOU, SessionServiceTicket
 
 __all__ = ['login', 'logout']
+
+logger = logging.getLogger(__name__)
 
 def _service_url(request, redirect_to=None):
     """Generates application service URL for CAS"""
@@ -86,10 +91,11 @@ def login(request, next_page=None, required=False):
             from django.contrib import auth
             request.session = session
             request.user = auth.get_user(request)
-            # logger.debug("Got single sign out callback from CAS for user %s session %s", request.user, request.session.session_key)
+            logger.debug("Got single sign out callback from CAS for user %s session %s", request.user, request.session.session_key)
             auth.logout(request)
             return HttpResponse('<html><body><h1>Single Sign Out - Ok</h1></body></html>')
         else:
+            logger.debug("Failed single sign out callback from CAS - session key was false.")
             return HttpResponse('<html><body><h1>Session not found</h1></body></html>')
         
     if request.user.is_authenticated():
