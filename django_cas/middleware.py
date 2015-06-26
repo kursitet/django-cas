@@ -18,13 +18,17 @@ class CASMiddleware(object):
     def process_request(self, request):
         """Logs in the user if a ticket is append as parameter"""
         
-        if request.user and request.user.is_authenticated():
-            return
-
         ticket = request.REQUEST.get('ticket')
 
         if ticket:
             from django.contrib import auth
+            # Mihara: This way we ensure that the session ID that auth wants is
+            # free when we try to do this. It seems to work.
+            # This also enforces single-login as a side effect,
+            # so if we want this to get accepted upstream one day, we need to figure out the right
+            # way to deal with it.
+            if request.user and request.user.is_authenticated():
+                auth.logout(request, user)
             user = auth.authenticate(ticket=ticket, service=_service_url(request))
             if user is not None:
                 auth.login(request, user)
