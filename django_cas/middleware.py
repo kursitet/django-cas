@@ -28,7 +28,7 @@ class CASMiddleware(object):
             # so if we want this to get accepted upstream one day, we need to figure out the right
             # way to deal with it.
             if request.user and request.user.is_authenticated():
-                auth.logout(request, request.user)
+                auth.logout(request) # , request.user)
             user = auth.authenticate(ticket=ticket, service=_service_url(request))
             if user is not None:
                 auth.login(request, user)
