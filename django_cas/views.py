@@ -84,14 +84,14 @@ def login(request, next_page=None, required=False):
     # parsed correctly into a QueryDict, and I'm not sure if this is django-mama-cas-specific,
     # a problem with a django version, or a problem with the whole approach...
     # but parsing the request body as straight XML /should/ work with everything, right?
-    
-    if settings.CAS_SINGLE_SIGN_OUT and request.POST and 'samlp:LogoutRequest' in request.body:
+
+    if settings.CAS_SINGLE_SIGN_OUT and request.method in ['POST'] and 'samlp:LogoutRequest' in request.body:
         session = _get_session(request.body)
         if session:
             from django.contrib import auth
             request.session = session
             request.user = auth.get_user(request)
-            logger.debug("Got single sign out callback from CAS for user %s session %s", request.user, request.session.session_key)
+            logger.info("Got single sign out callback from CAS for user %s session %s", request.user, request.session.session_key)
             auth.logout(request)
             return HttpResponse('<html><body><h1>Single Sign Out - Ok</h1></body></html>')
         else:
@@ -134,7 +134,7 @@ def _get_session(logout_response):
     except SessionServiceTicket.DoesNotExist:
         return None
     except Exception as e:
-        # logger.error("Unable to parse logout response from server: %s", e)
+        logger.error("Unable to parse logout response from server: {}".format(e))
         return None
 
 def logout(request, next_page=None):
